@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Genome-X Clinical Dashboard</title>
+    <style>
+        /* 🏥 Full Screen ဖြစ်အောင် တစ်ကိုယ်လုံးကို နေရာချခြင်း */
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f4f7f6;
+            color: #2c3e50;
+            margin: 0;
+            padding: 20px;
+            box-sizing: border-box;
+            height: 100vh;
+            /* Screen အပြည့် အမြင့် ယူမယ် */
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* 🖥️ Main Dashboard Container (ဘယ်ညာ Screen အပြည့်နီးပါး ဆွဲဆန့်ထားတယ်) */
+        .dashboard-container {
+            width: 98%;
+            max-width: 1800px;
+            /* Screen အကြီးကြီးတွေမှာပါ အပြည့်ဖြစ်အောင် */
+            margin: 0 auto;
+            background: #ffffff;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgb(70, 70, 70);
+            border-top: 5px solid #3498db;
+            box-sizing: border-box;
+
+        }
+
+        h1 {
+            font-size: 26px;
+            color: #2c3e50;
+            margin: 0 0 5px 0;
+        }
+
+        .subtitle {
+            font-size: 14px;
+            color: #7f8c8d;
+            margin-bottom: 25px;
+        }
+
+        input[type="text"] {
+            width: 95%;
+            /* Input Box ကိုလည်း အကျယ်ကြီး လုပ်လိုက်တယ် */
+            padding: 12px 15px;
+            font-size: 16px;
+            margin-bottom: 20px;
+            border-radius: 6px;
+            border: 1px solid #ced4da;
+            background-color: #f8f9fa;
+            box-sizing: border-box;
+        }
+
+        input[type="text"]:focus {
+            border-color: #3498db;
+            background-color: #fff;
+            outline: none;
+            box-shadow: 0 0 8px rgba(52, 152, 219, 0.2);
+        }
+
+        .btn-group {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-bottom: 5px;
+        }
+
+        button {
+            padding: 12px 30px;
+            font-size: 15px;
+            font-weight: 600;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.2s;
+            border: none;
+
+        }
+
+        .btn-gc {
+            background-color: #7da7c4;
+            color: white;
+        }
+
+        .btn-gc:hover {
+            background-color: #2074ac;
+        }
+
+        .btn-scan {
+            background-color: #6bb188;
+            color: white;
+        }
+
+        .btn-scan:hover {
+            background-color: #27ae60;
+        }
+
+        .result-box {
+            margin-top: 20px;
+            min-height: 45px;
+        }
+
+        .success-style {
+            color: #2c3e50;
+            background: #e8f4fd;
+            padding: 10px 25px;
+            border-left: 5px solid #3498db;
+            border-radius: 4px;
+            font-size: 16px;
+            display: inline-block;
+        }
+
+        .error-style {
+            color: #c0392b;
+            background: #fdf2f2;
+            padding: 10px 25px;
+            border-left: 5px solid #e74c3c;
+            border-radius: 4px;
+            font-size: 16px;
+            font-weight: bold;
+            display: inline-block;
+        }
+
+        /* 📜 📜 📜 သမိုင်းကြောင်းအကွက်ကို အပေါ်အောက် Scroll ဆွဲရအောင် ဖန်တီးခြင်း */
+        .history-container {
+            width: 98%;
+            max-width: 1800px;
+            margin: 20px auto 0 auto;
+            text-align: left;
+            background: white;
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgb(70, 70, 70);
+            box-sizing: border-box;
+
+            /* ✨ ဒီ (၃) ကြောင်းက အပေါ်အောက် Scroll ပေါ်စေမယ့် မန္တန်ပါပဲ */
+            max-height: 500px;
+            /* ဇယားကွက်ရဲ့ အမြင့်ကို ကန့်သတ်လိုက်တာ */
+            overflow-y: auto;
+            /* သတ်မှတ်အမြင့်ထက် ကျော်ရင် Scroll Bar အလိုအလျောက် ပေါ်မယ် */
+            position: relative;
+        }
+
+        .history-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+        }
+
+        /* 📌 ဇယားရဲ့ ခေါင်းစဉ်ကို အပေါ်မှာ ကပ်နေအောင် (Sticky) လုပ်ခြင်း */
+        .history-table th {
+            background-color: #d7d8d8;
+            color: #34495e;
+            padding: 10px;
+            border-bottom: 2px solid #6b6969;
+            font-size: 14px;
+            position: sticky;
+            top: 0;
+            z-index: 1;
+            width: 25%;
+        }
+
+        .history-table td {
+            padding: 12px;
+            border-bottom: 1px solid #dee2e6;
+            color: #99b4cf;
+            font-size: 14px;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="dashboard-container">
+        <h1>🧬 Genome-X Clinical Suite</h1>
+        <div class="subtitle">Laboratory Diagnostic & Bio-Security Verification System</div>
+
+        <form method="POST">
+            <input type="text" name="dna_input" placeholder="Enter DNA Sequence (e.g., ATGCATGC)" required><br>
+
+            <div class="btn-group">
+
+                <button type="submit" name="action" value="gc_content" class="btn-gc">📊 Calculate GC Content</button>
+                <button type="submit" name="action" value="bio_scan" class="btn-scan">🛡️ Run Bio-Security Scan</button>
+            </div>
+        </form>
+
+        <div class="result-box">
+            {% if calculation_result is not none %}
+            {% if is_error %}
+            <div class="error-style">{{ calculation_result }}</div>
+            {% else %}
+            <div class="success-style">{{ calculation_result }}</div>
+            {% endif %}
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="history-container">
+        <h3 style="margin: 0; color: #2c3e50;"> Patient Diagnostic Logs & History</h3>
+        <table class="history-table">
+            <thead>
+                <tr>
+                    <th>DNA Sequence</th>
+                    <th>Result Type</th>
+                    <th>Diagnostic Result</th>
+                    <th>Timestamp</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for row in history_list %}
+                <tr>
+                    <td><code style="background: #f1f3f5; padding: 2px 6px; border-radius: 4px;">{{ row[0] }}</code>
+                    </td>
+                    <td><strong>{{ row[1] }}</strong></td>
+                    <td>{{ row[2] }}</td>
+                    <td style="font-size: 12px; color: #95a5a6;">{{ row[3] }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+</body>
+
+</html>
