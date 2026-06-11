@@ -1,3 +1,7 @@
+from flask import send_file  # send_file မရှိသေးရင် flask import ထဲမှာ ထည့်ပါ
+from report_generator import generate_clinical_pdf
+
+
 from flask import Flask, render_template, request
 from Core_Engine import GenomeXEngine
 # 🧹 လိုအပ်တဲ့ function များကို သေသေချာချာ import လုပ်ထားပါတယ်
@@ -90,3 +94,21 @@ def home():
 
 if __name__ == "__main__":
     app.run(debug=True)
+
+
+@app.route('/export_report', methods=['POST'])
+def export_report():
+    # ၁။ လက်ရှိ ဓာတ်ခွဲခန်းထဲမှာ စစ်ဆေးထားတဲ့ ရလဒ်တွေကို Form ထဲကနေ လှမ်းယူမယ်
+    dna_seq = request.form.get('dna_sequence', 'N/A')
+    gc_ratio = request.form.get('gc_ratio', '0.00%')
+    security_status = request.form.get('security_status', 'Unknown')
+    mutations = request.form.get('mutations', '0')
+
+    pdf_filename = "GenomeX_Lab_Report.pdf"
+
+    # ၂။ PDF ထုတ်ပေးမယ့် Function ကို လှမ်းခေါ်မယ်
+    generate_clinical_pdf(pdf_filename, dna_seq, gc_ratio,
+                          security_status, mutations)
+
+    # ၃။ ထွက်လာတဲ့ PDF ဖိုင်ကို အသုံးပြုသူရဲ့ စက်ထဲကို Download ချပေးလိုက်မယ်
+    return send_file(pdf_filename, as_attachment=True)

@@ -1,0 +1,5 @@
+__pycache__/
+*.pyc
+genome_x.db
+clinical_result.txt
+genome_report.txt

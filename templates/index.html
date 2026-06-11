@@ -3,258 +3,333 @@
 
 <head>
     <meta charset="UTF-8">
-    <title>Genome-X Clinical Dashboard</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Genome-X Clinical Suite Pro</title>
     <style>
-        /* 🏥 Full Screen ဖြစ်အောင် တစ်ကိုယ်လုံးကို နေရာချခြင်း */
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: #f4f7f6;
-            color: #2c3e50;
-            margin: 0;
-            padding: 20px;
+        /* 🎨 CSS VARIABLES FOR LIGHT/DARK THEMES */
+        :root {
+            --bg-app: #0b0f19;
+            --bg-sidebar: #111625;
+            --bg-paper: #161b22;
+            --bg-input: #0b0f19;
+            --text-main: #c9d1d9;
+            --text-muted: #8b949e;
+            --text-heading: #f0f6fc;
+            --border-color: #21263d;
+            --primary-color: #238636;
+            --primary-hover: #2ea043;
+            --accent-color: #4e9aef;
+            --shadow: rgba(0, 0, 0, 0.5);
+        }
+
+        /* ☀️ LIGHT MODE OVERRIDES */
+        .light-mode {
+            --bg-app: #f4f6f9;
+            --bg-sidebar: #ffffff;
+            --bg-paper: #ffffff;
+            --bg-input: #f8fafc;
+            --text-main: #24292f;
+            --text-muted: #57606a;
+            --text-heading: #0969da;
+            --border-color: #d0d7de;
+            --primary-color: #1a7f37;
+            --primary-hover: #1f883d;
+            --accent-color: #0969da;
+            --shadow: rgba(140, 149, 159, 0.2);
+        }
+
+        /* 🏢 Global Setup */
+        * {
             box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            transition: background-color 0.3s, color 0.3s, border-color 0.3s;
+        }
+
+        body {
+            background-color: var(--bg-app);
+            color: var(--text-main);
+            display: flex;
             height: 100vh;
-            /* Screen အပြည့် အမြင့် ယူမယ် */
+            width: 100vw;
+            overflow: hidden;
+        }
+
+        .app-container {
+            display: flex;
+            width: 100%;
+            height: 100%;
+        }
+
+        /* 🛠️ SIDEBAR TOOLS (ဘယ်ဘက် ကိရိယာအကွက်) */
+        .sidebar-tools {
+            width: 320px;
+            background-color: var(--bg-sidebar);
+            border-right: 1px solid var(--border-color);
+            padding: 24px;
             display: flex;
             flex-direction: column;
+            gap: 20px;
+            z-index: 10;
         }
 
-        /* 🖥️ Main Dashboard Container (ဘယ်ညာ Screen အပြည့်နီးပါး ဆွဲဆန့်ထားတယ်) */
-        .dashboard-container {
-            width: 99%;
-            max-width: 1800px;
-            /* Screen အကြီးကြီးတွေမှာပါ အပြည့်ဖြစ်အောင် */
-            margin: 0 auto;
-            background: #ffffff;
+        .brand-section {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 2px solid var(--border-color);
+            padding-bottom: 15px;
+        }
+
+        .brand-title {
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: var(--accent-color);
+        }
+
+        /* 🌓 Theme Toggle Button */
+        .theme-toggle-btn {
+            background: none;
+            border: 1px solid var(--border-color);
+            padding: 6px 10px;
+            border-radius: 6px;
+            cursor: pointer;
+            color: var(--text-main);
+            font-size: 0.9rem;
+            background-color: var(--bg-app);
+        }
+
+        .tool-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .tool-label {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-weight: 600;
+        }
+
+        textarea {
+            width: 100%;
+            height: 120px;
+            background-color: var(--bg-input);
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            color: #4af626;
+            font-family: 'Courier New', monospace;
+            padding: 12px;
+            resize: none;
+        }
+
+        .light-mode textarea {
+            color: #1a7f37;
+        }
+
+        /* Light mode မှာ စာလုံးစိမ်းရောင်ကို အမြင်စိမ်းအောင် ညှိပေးတာ */
+
+        .btn {
+            width: 100%;
+            padding: 12px;
+            border: none;
+            border-radius: 6px;
+            font-weight: bold;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            font-size: 0.95rem;
+        }
+
+        .btn-primary {
+            background-color: var(--primary-color);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background-color: var(--primary-hover);
+        }
+
+        .btn-secondary {
+            background-color: var(--bg-sidebar);
+            color: var(--text-main);
+            border: 1px solid var(--border-color);
+        }
+
+        .btn-secondary:hover {
+            background-color: var(--border-color);
+        }
+
+        /* 🖨️ WORKSPACE & FULL-WIDTH REPORT VIEWER (ညာဘက် အကျယ်ဆုံးမျက်နှာပြင်) */
+        .report-viewer {
+            flex: 1;
             padding: 30px;
+            overflow-y: auto;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+        }
+
+        /* အကျယ်ဆုံး ဖြစ်သွားစေမယ့် Paper Card */
+        .report-paper {
+            width: 100%;
+            max-width: 1200px;
+            /* ⬅️ ဒီနေရာမှာ အကျယ်ကို ၁၂၀၀ ထိ ချဲ့လိုက်ပါတယ် */
+            background-color: var(--bg-paper);
+            border: 1px solid var(--border-color);
             border-radius: 12px;
-            box-shadow: 0 4px 20px rgb(70, 70, 70);
-            border-top: 5px solid #3498db;
-            box-sizing: border-box;
-
+            padding: 40px;
+            box-shadow: 0 10px 30px var(--shadow);
         }
 
-        h1 {
-            font-size: 26px;
-            color: #2c3e50;
-            margin: 0 0 5px 0;
-        }
-
-        .subtitle {
-            font-size: 14px;
-            color: #7f8c8d;
+        .report-header {
+            border-bottom: 2px dashed var(--border-color);
+            padding-bottom: 20px;
             margin-bottom: 25px;
         }
 
-        input[type="text"] {
-            width: 95%;
-            /* Input Box ကိုလည်း အကျယ်ကြီး လုပ်လိုက်တယ် */
-            padding: 12px 15px;
-            font-size: 16px;
-            margin-bottom: 20px;
-            border-radius: 6px;
-            border: 1px solid #ced4da;
-            background-color: #f8f9fa;
-            box-sizing: border-box;
+        .report-header h2 {
+            color: var(--text-heading);
+            font-size: 2rem;
         }
 
-        input[type="text"]:focus {
-            border-color: #3498db;
-            background-color: #fff;
-            outline: none;
-            box-shadow: 0 0 8px rgba(52, 152, 219, 0.2);
+        .timestamp {
+            color: var(--text-muted);
+            font-size: 0.85rem;
+            margin-top: 5px;
         }
 
-        .btn-group {
+        /* Diagnostics Data list */
+        .diagnostic-list {
             display: flex;
-            justify-content: center;
-            gap: 15px;
-            margin-bottom: 5px;
+            flex-direction: column;
+            margin-bottom: 30px;
         }
 
-        button {
-            padding: 12px 30px;
-            font-size: 15px;
-            font-weight: 600;
-            border-radius: 25px;
-            cursor: pointer;
-            transition: all 0.2s;
-            border: none;
+        .data-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 14px 10px;
+            border-bottom: 1px solid var(--border-color);
         }
 
-        .btn-gc {
-            background-color: #7da7c4;
-            color: white;
+        .data-label {
+            color: var(--text-muted);
         }
 
-        .btn-gc:hover {
-            background-color: #2074ac;
-        }
-
-        .btn-scan {
-            background-color: #6bb188;
-            color: white;
-        }
-
-        .btn-scan:hover {
-            background-color: #27ae60;
-        }
-
-        .btn-clear {
-            background-color: #ec877c;
-            color: white;
-        }
-
-        .btn-clear:hover {
-            background-color: #c0392b;
-        }
-
-        .result-box {
-            margin-top: 20px;
-            min-height: 45px;
-        }
-
-        .success-style {
-            color: #2c3e50;
-            background: #e8f4fd;
-            padding: 10px 25px;
-            border-left: 5px solid #3498db;
-            border-radius: 4px;
-            font-size: 16px;
-            display: inline-block;
-        }
-
-        .error-style {
-            color: #c0392b;
-            background: #fdf2f2;
-            padding: 10px 25px;
-            border-left: 5px solid #e74c3c;
-            border-radius: 4px;
-            font-size: 16px;
+        .data-value {
             font-weight: bold;
-            display: inline-block;
         }
 
-        /* 📜 သမိုင်းကြောင်းအကွက်ကို အပေါ်အောက် Scroll ဆွဲရအောင် ဖန်တီးခြင်း */
-        .history-container {
-            width: 99%;
-            max-width: 1800px;
-            margin: 20px auto 0 auto;
-            text-align: left;
-            background: white;
-            padding: 25px;
-            border-radius: 12px;
-            box-shadow: 0 4px 20px rgb(70, 70, 70);
-            box-sizing: border-box;
-            max-height: 800px;
-            overflow-y: auto;
-            position: relative;
+        .status-threat {
+            color: #f85149;
+            font-weight: bold;
         }
 
-        .history-table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 15px;
-        }
-
-
-        .history-table th {
-            background-color: #d7d8d8;
-            color: #34495e;
-            padding: 10px;
-            border-bottom: 2px solid #6b6969;
-            font-size: 14px;
-
-            top: 0;
-            z-index: 1;
-            width: 25%;
-        }
-
-        .history-table td {
-            padding: 12px;
-            border-bottom: 1px solid #dee2e6;
-            color: #99b4cf;
-            font-size: 14px;
+        /* Sequence Viewer Code Block */
+        .sequence-block {
+            background-color: var(--bg-input);
+            border: 1px solid var(--border-color);
+            padding: 20px;
+            border-radius: 8px;
+            font-family: 'Courier New', monospace;
+            font-size: 1rem;
+            color: var(--accent-color);
+            word-break: break-all;
+            margin-top: 12px;
+            letter-spacing: 1px;
         }
     </style>
 </head>
 
 <body>
 
-    <div class="dashboard-container">
-        <h1>🧬 Genome-X Clinical Suite</h1>
-        <div class="subtitle">Laboratory Diagnostic & Bio-Security Verification System</div>
+    <div class="app-container">
 
-        <form method="POST">
-            <input type="text" name="dna_input" placeholder="Enter Primary DNA Sequence (e.g., ATGCATGC)"><br>
-
-            <input type="text" name="dna_input_2"
-                placeholder="Enter Second DNA Sequence for Mutation Report (Optional)"><br>
-
-            <div class="btn-group">
-                <button type="submit" name="action" value="gc_content" class="btn-gc"
-                    onclick="document.getElementsByName('dna_input').required=true;">📊 Calculate GC
-                    Content</button>
-                <button type="submit" name="action" value="bio_scan" class="btn-scan"
-                    onclick="document.getElementsByName('dna_input').required=true;">🛡️ Run Bio-Security
-                    Scan</button>
-
-                <button type="submit" name="action" value="clear_logs" class="btn-clear"
-                    onclick="document.getElementsByName('dna_input').required=false;">🧹 Clear Logs</button>
-
-                <button type="submit" name="action" value="export_report"
-                    style="background-color: #3498db; color: white;"
-                    onclick="document.getElementsByName('dna_input').required=true;">📥 Export Lab
-                    Report</button>
+        <aside class="sidebar-tools">
+            <div class="brand-section">
+                <div class="brand-title">🧬 Genome-X</div>
+                <button class="theme-toggle-btn" id="themeBtn" onclick="toggleTheme()">☀️ Light</button>
             </div>
-        </form>
 
-        <div class="result-box">
-            {% if calculation_result is not none %}
-            {% if is_error %}
-            <div class="error-style">{{ calculation_result }}</div>
-            {% else %}
-            <div class="success-style">{{ calculation_result }}</div>
-            {% endif %}
-            {% endif %}
-        </div>
+            <form action="/analyze" method="POST" class="tool-group">
+                <span class="tool-label">Input DNA Sequence</span>
+                <textarea name="dna_sequence" placeholder="Enter ATGC sequence..."></textarea>
+                <button type="submit" class="btn btn-primary">⚡ Run Analysis</button>
+            </form>
+
+            <hr style="border: 0; border-top: 1px solid var(--border-color); margin: 10px 0;">
+
+            <div class="tool-group">
+                <span class="tool-label">Report Actions</span>
+                <form action="/export_report" method="POST">
+                    <input type="hidden" name="dna_sequence" value="ATGAATAAGATGCCCCCTGA">
+                    <input type="hidden" name="gc_ratio" value="42.86%">
+                    <input type="hidden" name="security_status" value="⚠️ Bio-Threat Detected!">
+                    <button type="submit" class="btn btn-secondary">🖨️ Export Lab PDF</button>
+                </form>
+            </div>
+        </aside>
+
+        <main class="report-viewer">
+            <div class="report-paper">
+
+                <div class="report-header">
+                    <h2>Genome-X Clinical Diagnostic Report</h2>
+                    <div class="timestamp">System Time: 2026-06-11 20:40:00 | Status: Live Mode</div>
+                </div>
+
+                <div class="diagnostic-list">
+                    <div class="data-row">
+                        <span class="data-label">Analysis Type</span>
+                        <span class="data-value">Automated DNA Sequencing</span>
+                    </div>
+                    <div class="data-row">
+                        <span class="data-label">GC Content Percentage</span>
+                        <span class="data-value">42.86%</span>
+                    </div>
+                    <div class="data-row">
+                        <span class="data-label">Bio-Security Status</span>
+                        <span class="data-value status-threat">⚠️ Bio-Threat Detected! (GATTACA found)</span>
+                    </div>
+                    <div class="data-row">
+                        <span class="data-label">Mutation Distance (Hamming)</span>
+                        <span class="data-value">1 mutations found</span>
+                    </div>
+                </div>
+
+                <div>
+                    <h3 style="color: var(--text-heading); font-size: 1.2rem;">Primary Analyzed Sequence</h3>
+                    <div class="sequence-block">
+                        ATGAATAAGATGCCCCCTGA
+                    </div>
+                </div>
+
+            </div>
+        </main>
+
     </div>
 
-    <div class="history-container">
-        <h3 style="margin: 0; color: #2c3e50;"> Patient Diagnostic Logs & History</h3>
-        <table class="history-table">
-            <thead>
-                <tr>
-                    <th>DNA Sequence</th>
-                    <th>Result Type</th>
-                    <th>Diagnostic Result</th>
-                    <th>Timestamp</th>
-                    <th>Actions</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for row in history_list %}
-                <tr>
-                    <td><code
-                            style="background: #f1f3f5; padding: 2px 6px; border-radius: 4px; color: #2c3e50;">{{ row }}</code>
-                    </td>
-                    <td><strong style="color: #34495e;">{{ row }}</strong></td>
-                    <td style="color: #2c3e50;">{{ row }}</td>
-                    <td style="font-size: 12px; color: #95a5a6;">{{ row }}</td>
-                    <td>
-                        <form method="POST" style="margin:0;">
-                            <input type="hidden" name="row_id" value="{{ row }}">
+    <script>
+        function toggleTheme() {
+            const body = document.body;
+            const btn = document.getElementById('themeBtn');
 
-                            <button type="submit" name="action" value="delete_row" class="btn-clear"
-                                style="padding: 5px 10px; font-size: 12px;">❌ Delete</button>
-                        </form>
-                    </td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-    </div>
+            // light-mode class ရှိမရှိ စစ်ပြီး အဖွင့်အပိတ်လုပ်တာ
+            body.classList.toggle('light-mode');
 
+            if (body.classList.contains('light-mode')) {
+                btn.innerHTML = "🌙 Dark";
+            } else {
+                btn.innerHTML = "☀️ Light";
+            }
+        }
+    </script>
 </body>
 
 </html>
