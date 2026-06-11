@@ -21,7 +21,7 @@
 
         /* 🖥️ Main Dashboard Container (ဘယ်ညာ Screen အပြည့်နီးပါး ဆွဲဆန့်ထားတယ်) */
         .dashboard-container {
-            width: 98%;
+            width: 99%;
             max-width: 1800px;
             /* Screen အကြီးကြီးတွေမှာပါ အပြည့်ဖြစ်အောင် */
             margin: 0 auto;
@@ -76,11 +76,10 @@
             padding: 12px 30px;
             font-size: 15px;
             font-weight: 600;
-            border-radius: 6px;
+            border-radius: 25px;
             cursor: pointer;
             transition: all 0.2s;
             border: none;
-
         }
 
         .btn-gc {
@@ -99,6 +98,15 @@
 
         .btn-scan:hover {
             background-color: #27ae60;
+        }
+
+        .btn-clear {
+            background-color: #ec877c;
+            color: white;
+        }
+
+        .btn-clear:hover {
+            background-color: #c0392b;
         }
 
         .result-box {
@@ -127,9 +135,9 @@
             display: inline-block;
         }
 
-        /* 📜 📜 📜 သမိုင်းကြောင်းအကွက်ကို အပေါ်အောက် Scroll ဆွဲရအောင် ဖန်တီးခြင်း */
+        /* 📜 သမိုင်းကြောင်းအကွက်ကို အပေါ်အောက် Scroll ဆွဲရအောင် ဖန်တီးခြင်း */
         .history-container {
-            width: 98%;
+            width: 99%;
             max-width: 1800px;
             margin: 20px auto 0 auto;
             text-align: left;
@@ -138,12 +146,8 @@
             border-radius: 12px;
             box-shadow: 0 4px 20px rgb(70, 70, 70);
             box-sizing: border-box;
-
-            /* ✨ ဒီ (၃) ကြောင်းက အပေါ်အောက် Scroll ပေါ်စေမယ့် မန္တန်ပါပဲ */
-            max-height: 500px;
-            /* ဇယားကွက်ရဲ့ အမြင့်ကို ကန့်သတ်လိုက်တာ */
+            max-height: 800px;
             overflow-y: auto;
-            /* သတ်မှတ်အမြင့်ထက် ကျော်ရင် Scroll Bar အလိုအလျောက် ပေါ်မယ် */
             position: relative;
         }
 
@@ -153,14 +157,14 @@
             margin-top: 15px;
         }
 
-        /* 📌 ဇယားရဲ့ ခေါင်းစဉ်ကို အပေါ်မှာ ကပ်နေအောင် (Sticky) လုပ်ခြင်း */
+
         .history-table th {
             background-color: #d7d8d8;
             color: #34495e;
             padding: 10px;
             border-bottom: 2px solid #6b6969;
             font-size: 14px;
-            position: sticky;
+
             top: 0;
             z-index: 1;
             width: 25%;
@@ -182,12 +186,26 @@
         <div class="subtitle">Laboratory Diagnostic & Bio-Security Verification System</div>
 
         <form method="POST">
-            <input type="text" name="dna_input" placeholder="Enter DNA Sequence (e.g., ATGCATGC)" required><br>
+            <input type="text" name="dna_input" placeholder="Enter Primary DNA Sequence (e.g., ATGCATGC)"><br>
+
+            <input type="text" name="dna_input_2"
+                placeholder="Enter Second DNA Sequence for Mutation Report (Optional)"><br>
 
             <div class="btn-group">
+                <button type="submit" name="action" value="gc_content" class="btn-gc"
+                    onclick="document.getElementsByName('dna_input').required=true;">📊 Calculate GC
+                    Content</button>
+                <button type="submit" name="action" value="bio_scan" class="btn-scan"
+                    onclick="document.getElementsByName('dna_input').required=true;">🛡️ Run Bio-Security
+                    Scan</button>
 
-                <button type="submit" name="action" value="gc_content" class="btn-gc">📊 Calculate GC Content</button>
-                <button type="submit" name="action" value="bio_scan" class="btn-scan">🛡️ Run Bio-Security Scan</button>
+                <button type="submit" name="action" value="clear_logs" class="btn-clear"
+                    onclick="document.getElementsByName('dna_input').required=false;">🧹 Clear Logs</button>
+
+                <button type="submit" name="action" value="export_report"
+                    style="background-color: #3498db; color: white;"
+                    onclick="document.getElementsByName('dna_input').required=true;">📥 Export Lab
+                    Report</button>
             </div>
         </form>
 
@@ -211,16 +229,26 @@
                     <th>Result Type</th>
                     <th>Diagnostic Result</th>
                     <th>Timestamp</th>
+                    <th>Actions</th>
                 </tr>
             </thead>
             <tbody>
                 {% for row in history_list %}
                 <tr>
-                    <td><code style="background: #f1f3f5; padding: 2px 6px; border-radius: 4px;">{{ row[0] }}</code>
+                    <td><code
+                            style="background: #f1f3f5; padding: 2px 6px; border-radius: 4px; color: #2c3e50;">{{ row }}</code>
                     </td>
-                    <td><strong>{{ row[1] }}</strong></td>
-                    <td>{{ row[2] }}</td>
-                    <td style="font-size: 12px; color: #95a5a6;">{{ row[3] }}</td>
+                    <td><strong style="color: #34495e;">{{ row }}</strong></td>
+                    <td style="color: #2c3e50;">{{ row }}</td>
+                    <td style="font-size: 12px; color: #95a5a6;">{{ row }}</td>
+                    <td>
+                        <form method="POST" style="margin:0;">
+                            <input type="hidden" name="row_id" value="{{ row }}">
+
+                            <button type="submit" name="action" value="delete_row" class="btn-clear"
+                                style="padding: 5px 10px; font-size: 12px;">❌ Delete</button>
+                        </form>
+                    </td>
                 </tr>
                 {% endfor %}
             </tbody>
