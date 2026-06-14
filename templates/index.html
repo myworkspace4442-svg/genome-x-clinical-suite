@@ -316,6 +316,20 @@
     </div>
 
     <script>
+        const dnaInput = document.querySelector('textarea[name="dna_sequence"]');
+        dnaInput.addEventListener('input', function (e) {
+            // ကမ္ဘာသုံး စည်းကမ်း: DNA စာလုံးတွေကို အမြဲတမ်း စာလုံးကြီး (Uppercase) ပြောင်းပေးမယ်
+            let uppercaseText = e.target.value.toUpperCase();
+
+            // 💡 အသစ်သင်ယူရမယ့်အရာ (Regex): A, T, G, C မဟုတ်တဲ့ စာလုံးမှန်သမျှကို ရှာပြီး ဖျက်ပစ်မယ်
+            // [^ATGC] ဆိုတာ "A, T, G, C မဟုတ်ရင်" လို့ အဓိပ္ပာယ်ရပါတယ်
+            let cleanedText = uppercaseText.replace(/[^ATGC]/g, '');
+
+            // ၃။ သန့်စင်ပြီးသား စာသား (Real DNA) ကိုပဲ Textarea ထဲ ပြန်ထည့်ပေးမယ်
+            e.target.value = cleanedText;
+        });
+
+
         function toggleTheme() {
             const body = document.body;
             const btn = document.getElementById('themeBtn');

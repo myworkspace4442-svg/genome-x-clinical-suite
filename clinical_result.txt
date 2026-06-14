@@ -13,7 +13,7 @@ Total ORFs Detected   : 0 frames found.
 ==================================================
                 MUTATION ANALYSIS                 
 ==================================================
-Compared Sequence     : CTTTAGATTCCGCTG
+Compared Sequence     : CCTTAGATGACACTT
 Result                : 3 mutations (Hamming)
 
 ==================================================
