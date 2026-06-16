@@ -1,7 +1,7 @@
 ==================================================
-           GEONOME-X DIAGNOSTIC REPORT            
+            GEONOME-X DIAGNOSTIC REPORT            
 ==================================================
-Original DNA Sequence : CGTTAGATTACACTG
+Original DNA Sequence : CGTTAGATTACACTG...
 GC Content Percentage : 40.00%
 Bio-Security Status   : 🚨 Warning: Bio-Threat Detected! (GATTACA found)
 
@@ -11,9 +11,8 @@ Bio-Security Status   : 🚨 Warning: Bio-Threat Detected! (GATTACA found)
 Total ORFs Detected   : 0 frames found.
 
 ==================================================
-                MUTATION ANALYSIS                 
+                  MUTATION ANALYSIS                
 ==================================================
-Compared Sequence     : CCTTAGATGACACTT
 Result                : 3 mutations (Hamming)
 
 ==================================================

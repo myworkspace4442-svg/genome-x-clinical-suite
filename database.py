@@ -40,4 +40,24 @@ def get_history():
     return rows
 
 
+def clear_all_history():
+    """Remove all records from the history table."""
+    conn = sqlite3.connect('genome_x.db')
+    cursor = conn.cursor()
+    cursor.execute("DELETE FROM history")
+    conn.commit()
+    conn.close()
+
+
+def delete_history_by_id(row_id):
+    """Delete a specific record by its ID from the history table."""
+
+    conn = sqlite3.connect('genome_x.db')
+    cursor = conn.cursor()
+    cursor.execute("DELETE FROM history WHERE id = ?", (row_id,))
+    conn.commit()
+    conn.close()
+
+
+# ...existing code...
 init_db()

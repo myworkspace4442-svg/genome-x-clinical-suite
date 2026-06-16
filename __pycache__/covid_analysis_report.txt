@@ -1,0 +1,39 @@
+==================================================
+            GEONOME-X DIAGNOSTIC REPORT            
+==================================================
+Original DNA Sequence : ATTAAAGGTTTATACCTTCCCAGGTAACAAACCAACCAACTTTCGATCTCTTGTAGATCTGTTCTCTAAACGAACTTTAAAATCTGTGTGGCTGTCACTC...
+GC Content Percentage : 47.22%
+Bio-Security Status   : ✅ Sequence Safe. No threats found.
+
+==================================================
+        OPEN READING FRAME (ORF) ANALYSIS         
+==================================================
+Total ORFs Detected   : 5 frames found.
+
+▶️ ORF #1 (Frame +1):
+  ↳ Position : 106 to 136
+  ↳ Sequence : ATGCTTAGTGCACTCACGCAGTATAATTAA...
+  ↳ Protein  : MLSALTQYN...
+
+▶️ ORF #2 (Frame +2):
+  ↳ Position : 407 to 425
+  ↳ Sequence : ATGGCACTTGTGGCTTAG...
+  ↳ Protein  : MALVA...
+
+▶️ ORF #3 (Frame +2):
+  ↳ Position : 467 to 533
+  ↳ Sequence : ATGTGTTCATCAAACGTTCGGATGCTCGAACTGCACCTCATGGTCATGTT...
+  ↳ Protein  : MCSSNVRMLELHLMVMLWLSW...
+
+▶️ ORF #4 (Frame +2):
+  ↳ Position : 593 to 686
+  ↳ Sequence : ATGTGGGCGAAATACCAGTGGCTTACCGCAAGGTTCTTCTTCGTAAGAAC...
+  ↳ Protein  : MWAKYQWLTARFFFVRTVIRELVAIVTAPI...
+
+▶️ ORF #5 (Frame +2):
+  ↳ Position : 725 to 899
+  ↳ Sequence : ATGAAGATTTTCAAGAAAACTGGAACACTAAACATAGCAGTGGTGTTACC...
+  ↳ Protein  : MKIFKKTGTLNIAVVLPVNSCVSLTEGHTLAMSITTSVALMGTLLIASNF...
+
+==================================================
+Report Generated Successfully by Genome-X Engine.

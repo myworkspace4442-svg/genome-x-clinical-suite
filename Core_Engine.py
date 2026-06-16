@@ -1,7 +1,8 @@
 import random
+import Levenshtein
 from Bio import SeqIO
 from Bio.Seq import Seq
-import Levenshtein
+import numpy as np
 
 
 class GenomeXEngine:
@@ -12,10 +13,6 @@ class GenomeXEngine:
         self.ALLOWED_BASES = set(['A', 'T', 'C', 'G', 'N'])
 
     def _clean_and_validate(self, sequence_string, name="DNA"):
-        """
-        [Option 1 Centralized Logic] 
-        ဒေတာများကို သန့်စင်ပြီး စစ်ဆေးပေးမည့် သီးသန့် Internal Helper ဖြစ်သည်။
-        """
         if not sequence_string:
             raise ValueError(f"❌ {name} စာသား ဗလာဖြစ်နေပါသည်။")
 
@@ -50,24 +47,29 @@ class GenomeXEngine:
     def calculate_gc(self):
         if not self.dna:
             return 0.0
-        g_count = self.dna.count('G')
-        c_count = self.dna.count('C')
-        return (g_count + c_count) / len(self.dna) * 100
+        dna_array = np.array(list(self.dna))
+
+        # 'N' စာလုံးများကို ဖယ်ထုတ်ပြီးမှ တိကျသော အရေအတွက်ကို တွက်ချက်ခြင်း
+        valid_dna = dna_array[dna_array != 'N']
+        if len(valid_dna) == 0:
+            return 0.0
+
+        g_count = np.sum(valid_dna == 'G')
+        c_count = np.sum(valid_dna == 'C')
+        return (g_count + c_count) / len(valid_dna) * 100
 
     def calculate_hamming_distance(self, other_sequence):
         if not self.dna:
             return "❌ လက်ရှိ Engine ထဲတွင် DNA ဒေတာမရှိပါ"
-
         try:
-            # အဝင်အမျှင်အသစ်ကိုပါ တစ်ခါတည်း သန့်စင်စစ်ဆေးပစ်မည်
             other_dna = self._clean_and_validate(other_sequence, "Input DNA")
-
             if len(self.dna) != len(other_dna):
                 return "❌ DNA အမျှင်နှစ်ခုစလုံး အရှည်တူညီရပါမည်"
 
-            # ရှင်းလင်းပြီး ပိုမြန်ဆန်သော Hamming loop
-            return sum(1 for i in range(len(self.dna)) if self.dna[i] != other_dna[i])
-
+            # NumPy သုံးပြီး ပိုမိုမြန်ဆန်အောင် Vectorized Hamming Distance တွက်နည်းပြောင်းလဲခြင်း
+            arr1 = np.array(list(self.dna))
+            arr2 = np.array(list(other_dna))
+            return int(np.sum(arr1 != arr2))
         except ValueError as e:
             return str(e)
 
@@ -81,7 +83,6 @@ class GenomeXEngine:
         return self.dna[start_idx:stop_idx + 3]
 
     def calculate_variant_distance(self, other_dna):
-        """Levenshtein Library သုံးပြီး အရှည်မတူသော DNA များ၏ Genetic Distance ကို တွက်ခြင်း"""
         if not self.dna:
             return "❌ No DNA Sequence Loaded"
         try:
@@ -93,44 +94,32 @@ class GenomeXEngine:
             return str(e)
 
     def find_all_orfs(self):
-        """
-        [Option 2 Logic]
-        DNA Sequence ထဲကနေ ဇီဝဗေဒစည်းမျဉ်းအတိုင်း ၃ လုံးစီ (Codons) ခုန်ပြီး
-        Valid ဖြစ်တဲ့ Open Reading Frames (ORFs) အားလုံးကို ရှာပေးမည့် စနစ်။
-        """
         if not self.dna:
             return []
 
         orfs = []
         dna_len = len(self.dna)
 
-        # ⚡ ဇီဝဗေဒအရ Reading Frames ၃ ခု (Frame 0, 1, 2) ရှိနိုင်လို့ အကုန်ပတ်ရှာမယ်
         for frame in range(3):
             i = frame
             while i < dna_len - 2:
                 codon = self.dna[i:i+3]
-
                 if codon == "ATG":  # Start Codon တွေ့ပြီ!
                     start_idx = i
                     found_stop = False
 
-                    # Start Codon တွေ့တဲ့နေရာကနေ ၃ လုံးစီ ထပ်ခုန်ပြီး Stop Codon လိုက်ရှာမယ်
                     for j in range(start_idx + 3, dna_len - 2, 3):
                         next_codon = self.dna[j:j+3]
-
                         if next_codon in ["TAA", "TAG", "TGA"]:  # Stop Codons
                             stop_idx = j + 3
                             orf_sequence = self.dna[start_idx:stop_idx]
 
-                            # တွေ့တဲ့ ORF ကို သိမ်းမယ် (ဘယ် Frame က ရှာတွေ့လဲပါ မှတ်မယ်)
                             orfs.append({
                                 "frame": frame,
                                 "start": start_idx,
                                 "stop": stop_idx,
                                 "sequence": orf_sequence
                             })
-
-                            # အနီးဆုံး Stop Codon တွေ့ရင် ရပ်ပြီး နောက်ထပ် Start Codon အသစ် ထပ်ရှာမယ်
                             i = j
                             found_stop = True
                             break
@@ -138,9 +127,7 @@ class GenomeXEngine:
                     if found_stop:
                         i += 3
                         continue
-
-                i += 3  # ၃ လုံးစီ ခုန်ဖတ်ခြင်း (In-frame scanning)
-
+                i += 3
         return orfs
 
     def calculate_codon_usage(self):
@@ -150,7 +137,6 @@ class GenomeXEngine:
         total_codons = 0
         for i in range(0, len(self.dna) - 2, 3):
             codon = self.dna[i:i+3]
-
             codon_counts[codon] = codon_counts.get(codon, 0) + 1
             total_codons += 1
         if total_codons == 0:
@@ -165,7 +151,6 @@ class GenomeXEngine:
         return codon_analysis
 
     def translate_rna_to_protein(self, rna_sequence):
-        # နေရာတကာ ထပ်မစစ်တော့ဘဲ ဝင်လာမည့် RNA ကို ရှင်းထုတ်ပြီး BioPython ဖြင့် တန်းမောင်းမည်
         rna_clean = rna_sequence.upper().strip().replace(' ', '').replace('\n', '')
         return str(Seq(rna_clean).translate(to_stop=True))
 
@@ -196,43 +181,47 @@ class GenomeXEngine:
         return "".join(dna_list)
 
     def read_fasta(self, file_path):
+        """BioPython SeqIO ဖြင့် သန့်ရှင်းသေသပ်စွာ ပြန်လည်ပြင်ဆင်ထားသော FASTA Reader"""
         print(f"📂 Reading FASTA file from: {file_path}\n")
+        dna_sequence = ""
         try:
+            # SeqIO သုံးပြီး ပေါ့ပေါ့ပါးပါး ဖတ်ရှုခြင်း
             for record in SeqIO.parse(file_path, "fasta"):
                 print(f"🆔 Gene ID        : {record.id}")
                 print(f"Description    : {record.description}")
                 print(f"🧬 Sequence Length : {len(record.seq)} bases")
                 print(f"🧪 Transcribed RNA : {record.seq.transcribe()[:15]}...")
                 print(
-                    f"💊 Translated Prot : {record.seq.translate(to_stop=True)}")
+                    f"💊 Translated Prot : {record.seq.translate(to_stop=True)[:15]}...")
                 print("-" * 50)
+                dna_sequence += str(record.seq)
+
+            # ဖတ်လို့ရလာတဲ့ Sequence ကို Engine ရဲ့ self.dna ထဲကိုပါ တန်းထည့်ပေးလိုက်မယ်
+            if dna_sequence:
+                self.load_sequence(dna_sequence)
+            return dna_sequence
+
         except FileNotFoundError:
             print("❌ Error: ဖိုင်ရှာမတွေ့ပါဗျာ။ File Path မှန်မမှန် ပြန်စစ်ပေးပါ။")
+            return ""
 
     def export_diagnostic_report(self, filename="genome_report.txt", other_sequence=None):
-        """
-        [Option 3 Logic]
-        DNA ၏ အချက်အလက်များ၊ Security Status များနှင့် အသစ်ထည့်သွင်းထားသော 
-        ORF (Protein) ခွဲခြမ်းစိတ်ဖြာမှု ရလဒ်အားလုံးကို ဖိုင်တွဲတစ်ခုတည်းအဖြစ် သိမ်းဆည်းပေးမည့်စနစ်။
-        """
         if not self.dna:
             return "❌ Export လုပ်ရန် DNA ဒေတာမရှိသေးပါ"
-
         try:
             with open(filename, "w", encoding="utf-8") as file:
                 file.write(
                     "==================================================\n")
                 file.write(
-                    "           GEONOME-X DIAGNOSTIC REPORT            \n")
+                    "            GEONOME-X DIAGNOSTIC REPORT            \n")
                 file.write(
                     "==================================================\n")
-                file.write(f"Original DNA Sequence : {self.dna}\n")
+                # တအားရှည်ရင် Report ကြည့်ရဆိုးလို့ အစပိုင်းပဲပြမယ်
+                file.write(f"Original DNA Sequence : {self.dna[:100]}...\n")
                 file.write(
                     f"GC Content Percentage : {self.calculate_gc():.2f}%\n")
                 file.write(f"Bio-Security Status   : {self.scan_security()}\n")
 
-                # 🧬 [ORF Analysis Integration]
-                # အပေါ်ကရေးခဲ့တဲ့ ORF Finder ကို လှမ်းခေါ်ပြီး Report ထဲ ထည့်သွင်းခြင်း
                 orfs = self.find_all_orfs()
                 file.write(
                     "\n==================================================\n")
@@ -243,18 +232,16 @@ class GenomeXEngine:
                 file.write(
                     f"Total ORFs Detected   : {len(orfs)} frames found.\n")
 
-                for index, orf in enumerate(orfs, 1):
+                # Top 10 ကိုပဲ အရင်ထုတ်ပြမယ်
+                for index, orf in enumerate(orfs[:10], 1):
                     file.write(f"\n▶️ ORF #{index} (Frame +{orf['frame']}):\n")
                     file.write(
                         f"  ↳ Position : {orf['start']} to {orf['stop']}\n")
-                    file.write(f"  ↳ Sequence : {orf['sequence']}\n")
-
-                    # RNA ပြောင်းပြီး Protein ထုတ်ယူမှု ရလဒ်ကိုပါ တစ်ခါတည်း တွက်ချက်သိမ်းဆည်းမည်
+                    file.write(f"  ↳ Sequence : {orf['sequence'][:50]}...\n")
                     protein_product = self.translate_rna_to_protein(
                         orf['sequence'].replace('T', 'U'))
-                    file.write(f"  ↳ Protein  : {protein_product}\n")
+                    file.write(f"  ↳ Protein  : {protein_product[:50]}...\n")
 
-                # 🧬 [Mutation Analysis Section]
                 if other_sequence:
                     if len(self.dna) == len(other_sequence):
                         distance = f"{self.calculate_hamming_distance(other_sequence)} mutations (Hamming)"
@@ -265,22 +252,18 @@ class GenomeXEngine:
                     file.write(
                         "\n==================================================\n")
                     file.write(
-                        "                MUTATION ANALYSIS                 \n")
+                        "                  MUTATION ANALYSIS                \n")
                     file.write(
                         "==================================================\n")
-                    file.write(
-                        f"Compared Sequence     : {other_sequence.upper()}\n")
                     file.write(f"Result                : {distance}\n")
 
                 file.write(
                     "\n==================================================\n")
                 file.write(
                     "Report Generated Successfully by Genome-X Engine.\n")
-
             return f"✅ Report Officially Saved: '{filename}'"
-
         except Exception as e:
-            return f"❌  (File Export Error): {str(e)}"
+            return f"❌ (File Export Error): {str(e)}"
 
 
 # ==========================================
@@ -291,57 +274,6 @@ engine = GenomeXEngine()
 # စမ်းသပ်ချက် (၁)
 
 
-# စမ်းသပ်ချက် (၂) - အရှည်မတူတဲ့ ကောင်တွေကို Distance တွက်ခြင်း (အသစ်ထည့်ထားတဲ့ Matrix စနစ်စမ်းသပ်မှု)
-engine.load_sequence("GAGCCTACTAACGGGAT")
-test_sequence = "CATCGTAATGACGGCAT"
-print(f"Hamming Distance: {engine.calculate_hamming_distance(test_sequence)}")
-
-# အရှည်မတူတဲ့ DNA နဲ့ စမ်းသပ်မယ် (ဒါဆိုရင် Matrix ကောင် အလုပ်လုပ်လိမ့်မယ်)
-long_sequence = "GAGCCTACTAACGGGATTTTT"
-print(
-    f"Variant Distance (Matrix): {engine.calculate_variant_distance(long_sequence)}")
-
-# စမ်းသပ်ချက် (၃) - Gene Extraction & Translation
-engine.load_sequence("CCCGGGATGAGCTAAAGCT")
-print(f"Extracted Gene: {engine.extract_gene()}")
-
-rna_sample = "AUGGCAGAAUAA"
-print(f"Translated Proteins: {engine.translate_rna_to_protein(rna_sample)}")
-
-# စမ်းသပ်ချက် (၄) - Mutation & Report Export
-engine.load_sequence("CGTTAGATTACACTG")
-mutated_dna = engine.generate_mutation(mutation_count=3)
-report_status = engine.export_diagnostic_report(
-    "clinical_result.txt", other_sequence=mutated_dna)
-print(report_status)
-# အင်ဂျင်ကို ခေါ်သုံးခြင်း
-# သို့မဟုတ် မင်းပေးထားတဲ့ Class နာမည်
-
-# မိမိဆောက်ခဲ့သော ဖိုင်ကို လှမ်းဖတ်ခိုင်းခြင်း
-engine.read_fasta("sample.fasta")
-# --- Engine ကို အသက်သွင်းခြင်း ---
-engine = GenomeXEngine()
-
-# စမ်းသပ်ဖို့ DNA ထည့်မယ် (ဒီထဲမှာ frame 0 ရော frame 1 မှာပါ ORF တွေ မြှုပ်ထားတယ်)
-test_sequence = "ATGAAATAAgATGCCCCCTGA"
-engine.load_sequence(test_sequence)
-
-# ORF ရှာခိုင်းမယ်
-found_orfs = engine.find_all_orfs()
-# ၁။ Engine ကို အသက်သွင်းပြီး ဒေတာ ထည့်မယ်
-engine = GenomeXEngine()
-# Space တွေရော၊ စာလုံးအသေးတွေရော ပါတယ်
-engine.load_sequence("  atgaaataag atgccccctga  ")
-
-# ၂။ ခွဲခြမ်းစိတ်ဖြာမှု အစီရင်ခံစာကို ထုတ်ယူမယ်
-# (ဒီမှာ Mutation စစ်ဖို့ အမျှင်တစ်ခုပါ တစ်ခါတည်း ထည့်စမ်းထားပါတယ်)
-status_message = engine.export_diagnostic_report(
-    filename="genome_report.txt",
-    other_sequence="ATGAAATAAGATGCCCCCTGG"
-)
-
-print(status_message)
-engine = GenomeXEngine()
 # စမ်းသပ်ဖို့ Codon တချို့ကို အထပ်ထပ် ထည့်ထားတဲ့ DNA
 engine.load_sequence("ATGATGATGTTTTTTCCCGGG")
 
@@ -351,4 +283,31 @@ print("\n📊 [CODON USAGE BIAS REPORT]")
 print("-" * 35)
 for codon, data in usage_report.items():
     print(
-        f"🧬 Codon: {codon} | Count: {data['count']} ကြိမ် | Percentage: {data['percentage']}%")
+        f"🧬 Codon: {codon} | Count: {data['count']} times/time | Percentage: {data['percentage']}%")
+# ၁။ Engine ကို စတင်သက်သွင်းမယ်
+# ၂။ Covid ဖိုင်ကို လှမ်းဖတ်ပြီး Engine ထဲကို Data သွင်းမယ်
+fasta_file = "covid_19.fasta"
+engine.read_fasta(fasta_file)
+
+# ၃။ ဒေတာဝင်သွားပြီဆိုရင် ခွဲခြမ်းစိတ်ဖြာမှုတွေ တန်းလုပ်မယ်
+if engine.dna:
+    print("\n" + "="*40)
+    print("        GENOMEX ENGINE REAL-TIME ANALYSIS       ")
+    print("="*40)
+
+    # GC Content တွက်ချက်ခြင်း
+    gc_percent = engine.calculate_gc()
+    print(f"📊 COVID-19 Section GC Content : {gc_percent:.2f}%")
+
+    # ဇီဝလုံခြုံရေး စစ်ဆေးခြင်း
+    security_status = engine.scan_security()
+    print(f"🛡️ Bio-Security Scan Status   : {security_status}")
+
+    # Open Reading Frames (ORFs) ဘယ်နှစ်ခုရှာတွေ့လဲ စစ်ခြင်း
+    orfs_found = engine.find_all_orfs()
+    print(f"🧬 Open Reading Frames Found  : {len(orfs_found)} frames")
+
+    # ၄။ ရလဒ်အားလုံးကို Text Report ဖိုင်အဖြစ် သိမ်းဆည်းခြင်း
+    report_file = "covid_analysis_report.txt"
+    export_status = engine.export_diagnostic_report(report_file)
+    print(f"\n📝 Report Status: {export_status}")

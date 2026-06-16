@@ -257,23 +257,18 @@
                 <button class="theme-toggle-btn" id="themeBtn" onclick="toggleTheme()">☀️ Light</button>
             </div>
 
-            <form action="/analyze" method="POST" class="tool-group">
+            <form id="dnaForm" method="POST" action="/" class="tool-group">
                 <span class="tool-label">Input DNA Sequence</span>
-                <textarea name="dna_sequence" placeholder="Enter ATGC sequence..."></textarea>
-                <button type="submit" class="btn btn-primary">⚡ Run Analysis</button>
-            </form>
+                <textarea name="dna_input" placeholder="Enter ATGC sequence..."></textarea>
 
-            <hr style="border: 0; border-top: 1px solid var(--border-color); margin: 10px 0;">
+                <button type="submit" onclick="setFormAction('/')" class="btn btn-primary">⚡ Run Analysis</button>
 
-            <div class="tool-group">
+                <hr style="border: 0; border-top: 1px solid var(--border-color); margin: 10px 0;">
+
                 <span class="tool-label">Report Actions</span>
-                <form action="/export_report" method="POST">
-                    <input type="hidden" name="dna_sequence" value="ATGAATAAGATGCCCCCTGA">
-                    <input type="hidden" name="gc_ratio" value="42.86%">
-                    <input type="hidden" name="security_status" value="⚠️ Bio-Threat Detected!">
-                    <button type="submit" class="btn btn-secondary">🖨️ Export Lab PDF</button>
-                </form>
-            </div>
+                <button type="submit" onclick="setFormAction('/export_report')" class="btn btn-secondary">🖨️ Export Lab
+                    PDF</button>
+            </form>
         </aside>
 
         <main class="report-viewer">
@@ -342,6 +337,9 @@
             } else {
                 btn.innerHTML = "☀️ Light";
             }
+        }
+        function setFormAction(actionUrl) {
+            document.getElementById('dnaForm').action = actionUrl;
         }
     </script>
 </body>

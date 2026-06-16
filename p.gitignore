@@ -4,3 +4,16 @@ genome_x.db
 clinical_result.txt
 genome_report.txt
 ertyui.py
+# Local test data and reports
+*.fasta
+*.txt
+*.pdf
+genome_diagnostic_report.txt
+GenomeX_Lab_Report.pdf
+
+# Python temporary files
+__pycache__/
+*.pyc
+
+# Database files
+*.db
