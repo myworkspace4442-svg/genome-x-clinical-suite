@@ -11,9 +11,7 @@ ertyui.py
 genome_diagnostic_report.txt
 GenomeX_Lab_Report.pdf
 
-# Python temporary files
-__pycache__/
-*.pyc
+
 
 # Database files
 *.db 
