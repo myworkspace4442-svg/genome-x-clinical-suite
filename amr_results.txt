@@ -1,0 +1,2 @@
+rpoB_S531L_gene	15
+katG_S315T_gene	8 

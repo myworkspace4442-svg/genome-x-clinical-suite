@@ -1,12 +1,16 @@
-FROM python:3.10-slim
+# Multi-stage Dockerfile
+FROM python:3.10-slim AS builder
 
-ENV PYTHONDONTWRITEBYTECODE=1
-ENV PYTHONUNBUFFERED=1
-
+# BWA & SAMtools + dependencies သွင်းခြင်း
 RUN apt-get update && apt-get install -y --no-install-recommends \
     build-essential \
-    gcc \
-    curl \
+    zlib1g-dev \
+    libbz2-dev \
+    liblzma-dev \
+    libncurses5-dev \
+    bwa \
+    samtools \
+    inotify-tools \
     && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
@@ -16,9 +20,7 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 COPY . .
 
-RUN mkdir -p /app/data_cache && chmod -R 777 /app/data_cache
+RUN chmod +x pipeline.sh
 
 EXPOSE 8501
-
-# 💡 အောက်ဆုံးက CMD နေရာမှာ Flask အစား Streamlit နှိုးတဲ့ ကုဒ် ပြောင်းထည့်ပါ
 CMD ["streamlit", "run", "app/main_ui.py", "--server.port=8501", "--server.address=0.0.0.0"]

@@ -1,17 +1,12 @@
+venv/
+.venv/
 __pycache__/
 *.pyc
-genome_x.db
-clinical_result.txt
-genome_report.txt
-ertyui.py
-# Local test data and reports
-*.fasta
-*.txt
-*.pdf
-genome_diagnostic_report.txt
-GenomeX_Lab_Report.pdf
-
-
-
-# Database files
-*.db 
+.env
+data_cache/*
+!data_cache/.gitkeep
+*.sam
+*.bam
+*.bai
+*.fastq
+*.gz

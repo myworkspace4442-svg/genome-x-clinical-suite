@@ -5,6 +5,7 @@ from Bio import Entrez, SeqIO
 from Bio.Seq import Seq
 # အခြား import များရဲ့ အောက်မှာ ထည့်ပါ
 from engine.cache_manager import LocalCacheEngine
+import re
 
 # =====================================================================
 # 📚 KNOWLEDGE BASE MODULE
@@ -372,6 +373,30 @@ class GenomeXEngine:
             print(
                 " ✅ Status  : မျိုးဗီဇအရ ဆေးယဉ်ပါးမှုအန္တရာယ် မရှိပါ။ စိတ်ချစွာ ကုသနိုင်ပါသည်။")
         print("========================================\n")
+
+
+def validate_dna_sequence(sequence: str) -> tuple[bool, str]:
+    """
+    Sequence တကယ် ဟုတ်၊ မဟုတ် စစ်ဆေးပေးသော Function
+    """
+    # နေရာလွတ်နှင့် Enter ခေါက်ချက်များ ဖျက်ခြင်း
+    clean_seq = sequence.strip().upper()
+
+    if not clean_seq:
+        return False, "❌ Empty input provided."
+
+    # FASTQ / FASTA Header ပါပါက ဖျက်ပြီး Base စာသားကိုပဲ စစ်ဆေးခြင်း
+    lines = clean_seq.splitlines()
+    bases = "".join([line for line in lines if not line.startswith(
+        '>') and not line.startswith('@')])
+
+    # A, T, C, G, N သာ ပါဝင်ရမည် (Command များ၊ ကိန်းဂဏန်းများ သို့မဟုတ် လမ်းကြောင်းများ လက်မခံပါ)
+    pattern = r'^[ATCGN]+$'
+
+    if re.match(pattern, bases):
+        return True, "Valid DNA Sequence"
+    else:
+        return False, "❌ Invalid Genomic Sequence! Only DNA bases (A, T, C, G) are allowed. Commands like 'docker compose up -d' are rejected."
 
 
 # --- စမ်းသပ်မောင်းနှင်ခြင်း ---
