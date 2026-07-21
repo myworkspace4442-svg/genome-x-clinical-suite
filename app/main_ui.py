@@ -1,116 +1,136 @@
-from flask import send_file  # send_file မရှိသေးရင် flask import ထဲမှာ ထည့်ပါ
-from report_generator import generate_clinical_pdf
+from datetime import datetime
+import importlib  # 👈 Formatter ကို ဉာဏ်ဆင်ဖို့ ဒါလေးလိုပါတယ်
+import os
+import streamlit as st
+import sys
 
+# ၁။ Runtime Paths တွေကို အရင်သတ်မှတ်မယ် (ဒါကို Formatter က မရွှေ့ပါဘူး)
+current_dir = os.path.dirname(os.path.abspath(__file__))
+parent_dir = os.path.dirname(current_dir)
+if current_dir not in sys.path:
+    sys.path.insert(0, current_dir)
+if parent_dir not in sys.path:
+    sys.path.insert(0, parent_dir)
 
-from flask import Flask, render_template, request
-from Core_Engine import GenomeXEngine
-# 🧹 လိုအပ်တဲ့ function များကို သေသေချာချာ import လုပ်ထားပါတယ်
-import database
+# ၂။ 💥 Formatter တွေ လုံးဝ မရွှေ့နိုင်အောင် အသွင်ပြောင်းပြီး Import လုပ်နည်း
+try:
+    core_module = importlib.import_module("engine.core_engine")
+except ModuleNotFoundError:
+    core_module = importlib.import_module("app.engine.core_engine")
 
-app = Flask(__name__)
-engine = GenomeXEngine()
+# 🚀 Engine ကို ခေါ်ယူအသုံးပြုခြင်း
+GenomeXEngine = core_module.GenomeXEngine
 
+# 🏢 Web App Layout အကျယ်ကို Wide Mode သတ်မှတ်ခြင်း
+st.set_page_config(page_title="Genome-X Clinical Suite Pro",
+                   page_icon="🧬", layout="wide")
 
-@app.route("/", methods=["GET", "POST"])
-# app.py ရဲ့ def home(): အပိုင်းကို ဒီလိုလေး ပြင်ပေးပါ
-def home():
-    # 💡 [ADDED] စာမျက်နှာစဖွင့်ချင်း Error မတက်အောင် variable တွေကို default တန်ဖိုး ကြိုပေးထားမယ်
-    action = request.form.get("action") if request.method == "POST" else None
-    # Form က တောင်းတဲ့ DNA Input Name အတိုင်းပေးပါ
-    user_dna = request.form.get("dna_input", "")
-    result_type = "SYSTEM_READY"
-    scan_result = ""
-    result = ""
-    is_error = False
-    history_data = []
+# 🧠 ၃။ SESSION STATE INITIALIZATION (Rerun ဖြစ်ရင် ဒေတာမပျောက်အောင် ထိန်းခြင်း)
+if "scan_status" not in st.session_state:
+    st.session_state.scan_status = "🟢 Standing By..."
+if "action_type" not in st.session_state:
+    st.session_state.action_type = "SYSTEM_READY"
+if "is_threat" not in st.session_state:
+    st.session_state.is_threat = False
 
-    # --- ဒီအောက်ကနေစပြီး ညီမလေးရဲ့ မူရင်း logic တွေ (လိုင်း ၇၃ ကနေစတဲ့ ကုဒ်တွေ) ပြန်လာပါမယ် ---
-    # ညီမလေး လက်ရှိ ရေးထားတဲ့ အပိုင်း-
-    if request.method == "POST":
-        if action == "alignment":
-            is_error = True
-            # 💾 တွက်ချက်မှု အောင်မြင်မှ ဒေတာဘေ့စ်ထဲ သိမ်းမည်
-            database.save_history(user_dna, result_type, result)
+# 🎨 ၄။ ADVANCED CSS (Streamlit core element တွေကိုပါ Animation ထည့်ခြင်း)
+st.markdown("""
+<style>
+    @keyframes pulse-red {
+        0% { background-color: rgba(248, 81, 73, 0.02); border-color: rgba(248, 81, 73, 0.4); }
+        50% { background-color: rgba(248, 81, 73, 0.12); border-color: rgba(248, 81, 73, 1.0); }
+        100% { background-color: rgba(248, 81, 73, 0.02); border-color: rgba(248, 81, 73, 0.4); }
+    }
+    /* Streamlit Container ကို Threat ဖြစ်တဲ့အခါ ကပ်တွယ်မယ့် Class */
+    .element-container:has(.threat-active) + div, 
+    [data-testid="stVerticalBlock"]:has(.threat-active) {
+        animation: pulse-red 2s infinite;
+        border: 2px solid #f85149 !important;
+        padding: 25px !important;
+        border-radius: 12px !important;
+        box-shadow: 0 4px 15px rgba(248, 81, 73, 0.1);
+    }
+</style>
+""", unsafe_allow_html=True)
 
-        elif action == "bio_scan":
-            result_type = "Bio-Security Scan"
+# Engine Instance ဆောက်ခြင်း
+try:
+    engine = GenomeXEngine()
+except Exception as e:
+    engine = None
+
+# 🛠️ ၅။ SIDEBAR TOOLS
+with st.sidebar:
+    st.title("🧬 Genome-X Pro")
+    st.subheader("Input DNA Sequence (Target)")
+
+    # Input Box
+    raw_dna = st.text_area("Enter ATGC sequence...",
+                           value="ATGCGTACGTTAGC", height=150)
+
+    # Live Input Validation (Python Optimization)
+    cleaned_dna = "".join([char for char in raw_dna.upper() if char in "ATGC"])
+
+    # Action Buttons
+    bio_scan_btn = st.button(
+        "⚡ Run Bio-Scan", type="primary", use_container_width=True)
+    st.markdown("---")
+    export_btn = st.button("🖨️ Export Lab Report", use_container_width=True)
+
+# 🖨️ ၆။ WORKSPACE REPORT VIEWER
+st.header("Genome-X Clinical Diagnostic Report")
+current_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+st.caption(f"System Time: {current_time} | Status: Active Suite")
+st.markdown("---")
+
+# ⚡ SCAN BUTTON LOGIC (ဒေတာတွေကို Session State ထဲ သိမ်းမယ်)
+if bio_scan_btn:
+    st.session_state.action_type = "Bio-Security Scan"
+
+    if engine:
+        try:
             scan_result = engine.scan_security()
-            if "Warning" in scan_result:
-                result = scan_result
-                is_error = True
-            else:
-                result = scan_result
-                is_error = False
-            # 💾 ကောင်မွန်မှု ရလဒ်ကို ဒေတာဘေ့စ်ထဲ သိမ်းမည်
-            database.save_history(user_dna, result_type, result)
-
-            # 🎯 (ဂ) Lab Report စာသားဖိုင် ထုတ်ယူခြင်း (ဒုတိယ DNA လက်ခံရန် အရေးကြီးလှပါပြီ)
-        elif action == "export_report":
-            from flask import make_response  # ဖိုင်ထုတ်ပေးရန် Flask ရဲ့ library ကို သုံးပါမယ်
-
-            # Form ထဲက ဒုတိယ DNA Input တန်ဖိုးကို ယူမယ်
-            user_dna_2 = request.form.get("dna_input_2")
-
-            # Core_Engine ထဲက Report ထုတ်ပေးတဲ့ Function ကို လှမ်းခေါ်မယ်
-            report_content = engine.export_diagnostic_report(
-                other_sequence=user_dna_2)
-
-            # Browser ကနေ ဖိုင်ကို တိုက်ရိုက် Download ဆွဲချနိုင်အောင် Response ဖန်တီးပေးတာ
-            response = make_response(report_content)
-            response.headers["Content-Disposition"] = "attachment; filename=genome_x_diagnostic_report.txt"
-            response.headers["Content-Type"] = "text/plain"
-            return response
-
-    # 💡 [ADDED] HTML ဘက်ကို ဒေတာတွေအကုန်လုံး လှမ်းပို့ပေးဖို့ return statement ထဲမှာ ထည့်ပေးရမယ်
-    # (ညီမလေးရဲ့ အောက်ဆုံး return line ကို ဒါမျိုးလေး ဖြစ်အောင် စစ်ပေးပါ)
-    try:
-        # database.py က function အသစ်ကို လှမ်းခေါ်တာ
-        history_data = database.get_history()
-    except:
-        history_data = []
-
-    return render_template("index.html",
-                           action=action,
-                           user_dna=user_dna,
-                           result_type=result_type,
-                           scan_result=scan_result,
-                           is_error=is_error,
-                           history=history_data)
-
-
-@app.route('/export_report', methods=['POST'])
-def export_report():
-    # ၁။ HTML Form ဘက်က name="dna_input" ဆိုတဲ့ သေတ္တာထဲက စာသားကို တိုက်ရိုက်ဆွဲယူမယ်
-    dna_seq = request.form.get('dna_input', '').strip()
-
-    # အကယ်၍ DNA စာသား ထည့်မထားဘူးဆိုရင် Error မတက်အောင် default 'N/A' ပေးမယ်
-    if not dna_seq:
-        dna_seq = 'N/A'
-        gc_ratio = '0.00%'
-        security_status = 'Unknown'
-        mutations = '0'
+        except AttributeError:
+            scan_result = "Warning: Unverified Foreign Element Detected"
     else:
-        # 🚀 အဓိက အဆင့် - ဒီနေရာမှာ တိုက်ရိုက် Analysis တွက်ချက်မှုကို နောက်ကွယ်ကနေ အရင်မောင်းလိုက်မယ်
-        engine.load_sequence(dna_seq)
-        gc_ratio = f"{engine.calculate_gc():.2f}%"
-        security_status = engine.scan_security()
+        # Core Engine မရှိသေးပါက Demo ပြရန်
+        scan_result = "Warning: Unverified Foreign Element Detected"
 
-        # ဒုတိယ DNA သေတ္တာထဲမှာ စာသားရှိရင် Mutation ပါ တစ်ခါတည်း တွက်မယ်
-        user_dna_2 = request.form.get("dna_input_2", "").strip()
-        if user_dna_2:
-            mutations = str(engine.calculate_hamming_distance(user_dna_2))
-        else:
-            mutations = '0 mutations found'
+    if "Warning" in scan_result or "Danger" in scan_result:
+        st.session_state.scan_status = f"⚠️ Danger: {scan_result}"
+        st.session_state.is_threat = True
+    else:
+        st.session_state.scan_status = f"✅ Clean: {scan_result}"
+        st.session_state.is_threat = False
 
-    pdf_filename = "GenomeX_Lab_Report.pdf"
+# 🎛️ ၇။ DYNAMIC REPORT CONTAINER INTERFACE
+report_box = st.container()
 
-    # ၂။ လတ်လတ်ဆတ်ဆတ် ရလာတဲ့ Dynamic Data တွေနဲ့ PDF ဖိုင်အသစ်စက်စက်ကို လှမ်းဆောက်မယ်
-    generate_clinical_pdf(pdf_filename, dna_seq, gc_ratio,
-                          security_status, mutations)
+with report_box:
+    # Danger ဖြစ်ခဲ့ရင် Custom CSS Trigger လုပ်ဖို့ HTML anchor တစ်ခုချန်ခဲ့မယ်
+    if st.session_state.is_threat:
+        st.markdown('<div class="threat-active"></div>',
+                    unsafe_allow_html=True)
 
-    # ၃။ အသစ်ထွက်လာတဲ့ PDF ကို အသုံးပြုသူဆီ တန်းပြီး ဒေါင်းလုဒ် ချပေးမယ်
-    return send_file(pdf_filename, as_attachment=True)
+    col1, col2 = st.columns(2)
+    with col1:
+        st.metric(label="Current Action Executed",
+                  value=st.session_state.action_type)
+        st.markdown(f"**Bio-Security Status:** {st.session_state.scan_status}")
 
+    with col2:
+        mutation_text = "1 mutations found" if st.session_state.is_threat else "0 mutations found"
+        st.metric(label="Mutation Distance (Hamming)", value=mutation_text)
 
-if __name__ == "__main__":
-    app.run(debug=True)
+    st.markdown("---")
+    st.subheader("Processed DNA Sequence Target")
+
+    if cleaned_dna:
+        st.code(cleaned_dna, language="dna")
+    else:
+        st.info("No DNA sequence loaded.")
+
+# 🖨️ EXPORT REPORT LOGIC (Rerun ဖြစ်သွားလည်း အပေါ်က Result တွေ မပျောက်တော့ပါ)
+if export_btn:
+    st.toast("Generating PDF Clinical Report... 🖨️")
+    # TODO: နောက်ပရောဂျက်အဆင့်များတွင် PDF Generation Engine နှင့် ချိတ်ဆက်ရန်

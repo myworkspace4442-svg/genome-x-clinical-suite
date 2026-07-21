@@ -8,7 +8,7 @@ echo -e "${GREEN}   GENOME-X PIPELINE AUTOMATOR (LINUX DEV)   ${NC}"
 echo -e "${GREEN}=============================================${NC}"
 
 echo "⚙️ [DevOps]: Launching Genome-X Suite via Docker Compose..."
-docker-compose up -d --build
+docker compose up -d --build
 
 if [ $? -eq 0 ]; then
     echo -e "${GREEN}✅ [Success]: Genome-X Engine is now running optimally!${NC}"
