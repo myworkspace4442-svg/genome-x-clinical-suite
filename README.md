@@ -1,97 +1,60 @@
-# 🧬 Genome-X Suite: Multi-Gene AMR Prediction Engine
+# Genome-X Suite: Clinical-Grade AMR Engine & Structural Viewer
 
-[![Python Version](https://img.shields.io/badge/python-3.10%2B-blue.svg)](https://www.python.org/)
-[![PyTorch](https://img.shields.io/badge/PyTorch-2.0%2B-ee4c2c.svg)](https://pytorch.org/)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Build Status](https://img.shields.io/badge/tests-passing-brightgreen.svg)]()
+Genome-X Suite is an enterprise-grade bioinformatics and machine learning platform designed for antimicrobial resistance (AMR) prediction, sequence alignment, and real-time 3D protein structure analysis.
 
-> **Genome-X Suite** is an end-to-end, interpretable machine learning pipeline designed for **Antimicrobial Resistance (AMR)** prediction in bacterial pathogens (*E. coli*, *S. aureus*, etc.) using dual-stream genomic feature fusion.
+The system utilizes a decoupled architecture featuring a Python FastAPI backend for dual-stream ML inference and a React + TypeScript frontend integrated with Mol* for dynamic, two-way synchronized structural visualization.
 
 ---
 
-## 📌 Key Features
+## Key System Features
 
-* **Multi-Gene Hotspot Analysis:** Targets critical QRDR/RRDR mutation hotspots across $gyrA$, $rpoB$, $parC$, and $parE$.
-* **Dual-Stream Machine Learning Architecture:**
-  * **1D-CNN Stream:** Captures local sequence motifs from One-Hot Encoded amino acid sequences.
-  * **XGBoost Stream:** Captures promoter and non-coding variations using $k$-mer frequency matrices ($k=6$).
-* **Late Fusion Ensemble:** Stacks sub-model probabilities using a Meta-Learner (Logistic Regression) to optimize final classification metrics.
-* **Explainable AI (XAI):** Integrated **SHAP (Shapley Additive exPlanations)** layer for biological hypothesis validation and mutation attribution.
-* **Research-Grade Visualizer:** Interactive 3D binding pocket visualization (PyMOL-style Ribbon + Hotspot Stick representation) via Streamlit UI.
+### 1. High-Performance Machine Learning & XAI
+* **Dual-Stream odes.
+
+### 4. Clinical Audit Trail
+* **Prediction Logs:** Retains historical inference records with export options (CSV) for regulatory compliance.
 
 ---
 
-## 🏗️ Architecture Overview
+## Design System Architecture
+
+The user interface follows strict UI/UX design standards:
+
+* **8pt Grid System:** All paddings, margins, and layout gaps adhere to multiples of 8px (4px, 8px, 16px, 24px, 32px).
+* **60-30-10 Color Rule:**
+  * 60% Neutral Background: Light Slate (`#F9FAFB` / `#FFFFFF`)
+  * 30% Text & Borders: Dark Slate (`#1F2937`) & Crisp Gray (`#E5E7EB`)
+  * 10% Accent Action: Brand Blue (`#2563EB`)
+* **Typography Scale:**
+  * Page Headers: 24px Bold (32px line height)
+  * Section Titles: 18px Semi-Bold (24px line height)
+  * Body Text: 14px Regular (20px line height)
+  * Captions & Muted Text: 12px Regular (`#6B7280`)
+
+---
+
+## Project Directory Structure
 
 ```text
-               ┌──► Stream 1: Hotspot Gene Sequences ──► 1D-CNN Classifier ──────┐
-               │                                                                ▼
-[Input Genome]─┼                                                        [Late Fusion Meta-Learner] ──► AMR Phenotype Output
-               │                                                                ▲                            & SHAP Report
-               └──► Stream 2: Non-Coding Regions    ──► XGBoost Classifier ──────┘
-```
-
----
-
-## 📁 Repository Structure
-
-```text
-Genome_X_Suite/
-├── app/                        # Streamlit Web UI & Engine Integration
-│   ├── main_ui.py              # Dashboard Entry Point
-│   └── engine/                 # Modular Analytical Engines (AMR, 3D View)
-├── data/                       # Raw & Processed Genomic Data
-├── configs/                    # Model Hyperparameters & Target Gene Specs
-├── src/                        # Core Python Modules
-│   ├── features/               # One-Hot & k-mer Vectorizers
-│   ├── models/                 # PyTorch CNN, XGBoost & Fusion Meta-Learner
-│   └── explainability/         # SHAP Visualizers
-├── tests/                      # Unit Tests (pytest)
-├── requirements.txt            # Package Dependencies
-└── README.md
-```
-
----
-
-## 🚀 Quick Start
-
-### 1. Clone the Repository
-```bash
-git clone [https://github.com/your-username/Genome_X_Suite.git](https://github.com/your-username/Genome_X_Suite.git)
-cd Genome_X_Suite
-```
-
-### 2. Set Up Virtual Environment
-```bash
-python -m venv venv
-source venv/bin/activate  # On Windows: venv\Scripts\activate
-pip install -r requirements.txt
-```
-
-### 3. Run Streamlit Dashboard
-```bash
-streamlit run app/main_ui.py
-```
-
----
-
-## 🧪 Model Performance & Validation
-
-| Target Antibiotic | Feature Input Target | Primary Model | Sensitivity | Specificity | F1-Score |
-| :--- | :--- | :--- | :--- | :--- | :--- |
-| **Ciprofloxacin** | *gyrA + parC + k-mers* | Late Fusion | 94.2% | 91.8% | **0.93** |
-| **Rifampicin** | *rpoB + k-mers* | Late Fusion | 95.1% | 93.4% | **0.94** |
-
----
-
-## 📄 Citation & Acknowledgments
-If you use this suite in your research, please cite:
-```bibtex
-@software{genome_x_suite_2026,
-  author = {Your Name},
-  title = {Genome-X Suite: Interpretable Dual-Stream AMR Prediction Engine},
-  year = {2026},
-  publisher = {GitHub},
-  url = {[https://github.com/your-username/Genome_X_Suite](https://github.com/your-username/Genome_X_Suite)}
-}
-```
+genome-x-suite/
+├── app/                          # FastAPI Backend Engine
+│   ├── main_api.py               # REST API Routes & Endpoints
+│   ├── database.py               # SQLite Persistence Layer
+│   └── models/                   # 1D-CNN + XGBoost ML Pipeline
+│
+├── genome-x-frontend/            # React + TypeScript Frontend
+│   ├── src/
+│   │   ├── components/           # UI Components
+│   │   │   ├── SequenceAlignmentCanvas.tsx
+│   │   │   ├── Molstar3DViewer.tsx
+│   │   │   └── GenomeTrackBrowser.tsx
+│   │   ├── store/
+│   │   │   └── useGenomeStore.ts # Zustand State Management (Cross-Highlighting)
+│   │   ├── services/
+│   │   │   └── api.ts            # Axios Client for FastAPI
+│   │   ├── App.tsx
+│   │   └── main.tsx
+│   ├── package.json
+│   └── tsconfig.json
+│
+└── Dockerfile                    # Containerization Spec
