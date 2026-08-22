@@ -1,0 +1,18 @@
+# Python Virtual Environments
+venv/
+.venv/
+env/
+
+# Node Modules (Frontend)
+node_modules/
+
+# Python Cache & Builds
+__pycache__/
+*.pyc
+
+# Heavy Files / Model Checkpoints
+*.pt
+data_cache/
+outputs/
+node_modules
+node_modules

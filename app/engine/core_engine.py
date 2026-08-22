@@ -4,7 +4,7 @@ import numpy as np
 from Bio import Entrez, SeqIO
 from Bio.Seq import Seq
 # အခြား import များရဲ့ အောက်မှာ ထည့်ပါ
-from engine.cache_manager import LocalCacheEngine
+from app.engine.cache_manager import LocalCacheEngine
 import re
 
 # =====================================================================

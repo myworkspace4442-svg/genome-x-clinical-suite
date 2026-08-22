@@ -10,3 +10,4 @@ data_cache/*
 *.bai
 *.fastq
 *.gz
+node_modules/

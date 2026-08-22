@@ -1,3 +1,0 @@
-Alignment Score: 9
-Sequence 1: ATCGGT
-Sequence 2: AGCGGT

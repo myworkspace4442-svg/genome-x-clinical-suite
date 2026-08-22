@@ -1,80 +1,55 @@
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
-from typing import List, Dict, Any, Optional
+from typing import List
 
-app = FastAPI(
-    title="Genome-X Core API Engine",
-    description="RESTful Backend Engine for Dual-Stream ML, SHAP XAI, and 3D Structural Coordination",
-    version="1.0.0"
-)
+# Core Engine အဟောင်းများ သို့မဟုတ် ML Engine များကို Import လုပ်ပါ
+from app.engine.core_engine import GenomeXEngine  # cite: image_d0b01e.png
+from explainability.shap_engine import SHAPExplainerEngine  # cite: image_d10e58.png
 
-# Allow React Frontend (CORS Policy)
+app = FastAPI(title="Genome-X Suite API", version="1.0")
+
+# Frontend (Vite Port 5173 / 5174) မှ လာသော Request များကို ခွင့်ပြုရန် CORS Config
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=["http://localhost:5173", "http://localhost:5174"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-# Request Models
 
-
-class GenomeAnalysisRequest(BaseModel):
-    pathogen: str
-    antibiotic: str
+class SequenceRequest(BaseModel):
     sequence: str
-    kmer_counts: Optional[Dict[str, float]] = None
-
-# Response Models
-
-
-class HotspotInfo(BaseModel):
-    gene: str
-    mutation: str
-    residue_id: int
+    pathogen: str = "E. coli"
+    antibiotic: str = "Ciprofloxacin"
 
 
-@app.get("/health")
-def health_check():
-    return {"status": "operational", "engine": "Genome-X API Engine v1.0"}
+@app.get("/")
+def read_root():
+    return {"status": "Active", "engine": "Genome-X Core v1.0"}
 
 
-@app.post("/api/v1/predict")
-def predict_amr(data: GenomeAnalysisRequest):
-    """
-    Executes Dual-Stream Model Inference and Returns Target Coordinates.
-    """
-    # Linked with src/models/fusion.py
-    return {
-        "phenotype": "RESISTANT",
-        "fusion_probability": 0.954,
-        "pdb_id": "1KZN",
-        "primary_hotspot": {
-            "gene": "gyrA",
-            "mutation": "S83L",
-            "residue_id": 83
-        },
-        "secondary_hotspot": {
-            "gene": "parC",
-            "mutation": "S80I",
-            "residue_id": 80
+@app.post("/api/v1/predict-amr")
+def predict_amr(payload: SequenceRequest):
+    try:
+        # 1. Pipeline/Engine မှ Real Prediction ရယူခြင်း
+        # (စမ်းသပ်ရန် Sample Logic - မိမိ Model Logic နှင့် ပြန်ပြင်နိုင်ပါသည်)
+        return {
+            "predicted_phenotype": "RESISTANT",
+            "confidence": 95.4,
+            "primary_target": "gyrA_S83L",
+            "secondary_target": "parC_S80I",
+            "shap_features": [
+                {"gene": "gyrA (S83L Mutation)", "value": 0.48,
+                                "impact": "High Resistance Driver"},
+                {"gene": "parC (S80I Mutation)", "value": 0.32,
+                 "impact": "Secondary Hotspot"},
+                {"gene": "qnrS1 (Plasmid Gene)", "value": 0.12,
+                 "impact": "Moderate Resistance Effect"},
+                {"gene": "acrB (Efflux Pump)", "value": 0.08,
+                 "impact": "Minor Contribution"}
+            ]
         }
-    }
-
-
-@app.post("/api/v1/explain")
-def get_shap_explanation(data: GenomeAnalysisRequest):
-    """
-    Returns Feature Attribution Scores linked with Amino Acid Residue IDs.
-    """
-    # Linked with src/explainability/shap_engine.py
-    return {
-        "feature_attributions": [
-            {"feature": "gyrA (S83L)", "impact_score": 0.42, "residue_id": 83},
-            {"feature": "parC (S80I)", "impact_score": 0.28, "residue_id": 80},
-            {"feature": "kmer_ATCGGA", "impact_score": 0.15, "residue_id": None},
-            {"feature": "kmer_GCTAGC", "impact_score": 0.08, "residue_id": None}
-        ]
-    }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
